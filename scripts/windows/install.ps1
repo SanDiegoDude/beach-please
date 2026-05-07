@@ -39,17 +39,73 @@ if ([int]$verParts[0] -lt 3 -or ([int]$verParts[0] -eq 3 -and [int]$verParts[1] 
 }
 Ok "python $pyVer"
 
-# --- Node ---
-$nodeCmd = Get-Command node -ErrorAction SilentlyContinue
-if (-not $nodeCmd) { Die "node not found. Install Node 20+ from https://nodejs.org" }
-$nodeVer = (& node -v).TrimStart('v')
-if ([int]($nodeVer.Split('.')[0]) -lt 20) { Die "Node 20+ required, found $nodeVer." }
-Ok "node v$nodeVer"
-
-if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
-    Die "npm not found. It usually ships with node - try reinstalling node."
+# --- Node + npm ---
+# Cursor / VS Code / Electron apps put their own bundled `node.exe` on PATH,
+# but ship it WITHOUT npm. So we can't trust the first `node` we find -- we
+# need a node that has npm sitting beside it. Walk every node on PATH and
+# pick the first one paired with npm; fall back to common install dirs.
+function Find-NodeWithNpm {
+    $candidates = @(Get-Command node -All -ErrorAction SilentlyContinue)
+    foreach ($c in $candidates) {
+        $dir = Split-Path $c.Source -Parent
+        if ((Test-Path (Join-Path $dir "npm.cmd")) -or
+            (Test-Path (Join-Path $dir "npm.exe")) -or
+            (Test-Path (Join-Path $dir "npm"))) {
+            return $c.Source
+        }
+    }
+    # Fallback: PATH may not be refreshed yet (e.g. fresh winget install in
+    # the same shell). Probe common Node.js install locations.
+    $fallbacks = @(
+        "$env:ProgramFiles\nodejs\node.exe",
+        "${env:ProgramFiles(x86)}\nodejs\node.exe",
+        "$env:LOCALAPPDATA\Programs\nodejs\node.exe",
+        "$env:APPDATA\npm\node.exe"
+    )
+    foreach ($f in $fallbacks) {
+        if ($f -and (Test-Path $f)) {
+            $dir = Split-Path $f -Parent
+            if (Test-Path (Join-Path $dir "npm.cmd")) { return $f }
+        }
+    }
+    return $null
 }
-Ok "npm $(npm -v)"
+
+$nodeExe = Find-NodeWithNpm
+if (-not $nodeExe) {
+    $bareNode = Get-Command node -ErrorAction SilentlyContinue
+    if ($bareNode -and ($bareNode.Source -like "*\cursor\*" -or $bareNode.Source -like "*\Microsoft VS Code\*")) {
+        Die @"
+Found 'node' at '$($bareNode.Source)' but no 'npm' beside it.
+That's the editor's bundled Node helper, not a real Node.js installation.
+
+Install Node.js 20+ with one of:
+  winget install OpenJS.NodeJS.LTS
+  choco install nodejs-lts
+  or download from https://nodejs.org
+
+Then OPEN A NEW PowerShell window so PATH picks up npm, and re-run this script.
+"@
+    } elseif ($bareNode) {
+        Die "Found 'node' at '$($bareNode.Source)' but no 'npm' beside it. Reinstall Node.js from https://nodejs.org and reopen this terminal."
+    } else {
+        Die "node not found. Install Node 20+: 'winget install OpenJS.NodeJS.LTS' or download from https://nodejs.org"
+    }
+}
+
+$nodeVer = (& $nodeExe -v).TrimStart('v')
+if ([int]($nodeVer.Split('.')[0]) -lt 20) { Die "Node 20+ required, found $nodeVer (at $nodeExe)." }
+Ok "node v$nodeVer ($nodeExe)"
+
+# npm on Windows is npm.cmd. Resolve it as an absolute path so we don't
+# depend on PATH lookup, which can be hijacked by editor stubs.
+$nodeDir = Split-Path $nodeExe -Parent
+$npmExe  = @("npm.cmd", "npm.exe", "npm") |
+    ForEach-Object { Join-Path $nodeDir $_ } |
+    Where-Object   { Test-Path $_ } |
+    Select-Object  -First 1
+if (-not $npmExe) { Die "npm not found beside node at '$nodeDir'. Reinstall Node.js." }
+Ok "npm $(& $npmExe -v)"
 
 # --- uv (optional) ---
 $useUv = $false
@@ -95,7 +151,7 @@ Info "Frontend"
 Set-Location (Join-Path $Root "frontend")
 
 if (-not (Test-Path "node_modules")) {
-    npm install
+    & $npmExe install
 } else {
     Ok "node_modules exists (run 'npm install' in frontend\ if package.json changed)"
 }
