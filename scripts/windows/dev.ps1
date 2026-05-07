@@ -101,28 +101,61 @@ Write-Host ""
 Write-Host "Streaming logs below (Ctrl-C to stop everything)..."
 Write-Host ""
 
-# Trap Ctrl-C so we can clean up child processes.
+# Trap Ctrl-C / unexpected exits so we clean up the WHOLE process tree --
+# not just the recorded npm.cmd / cmd.exe wrappers. Mirrors stop.ps1; if you
+# update one, update the other.
 $cleanup = {
     Write-Host ""
     Info "Stopping..."
+    $snap = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue)
+
+    function _Get-Descendants {
+        param([int]$ParentId, [array]$Snap)
+        $kids = $Snap | Where-Object { $_.ParentProcessId -eq $ParentId }
+        foreach ($k in $kids) {
+            $k
+            _Get-Descendants -ParentId ([int]$k.ProcessId) -Snap $Snap
+        }
+    }
+
     foreach ($pf in @($BackendPid, $FrontendPid)) {
         if (Test-Path $pf) {
-            $procId = (Get-Content $pf | Select-Object -First 1).Trim()
-            try {
-                Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
-                Ok "killed pid $procId"
-            } catch { }
+            $procIdText = (Get-Content $pf | Select-Object -First 1).Trim()
+            $rootId = 0
+            if ([int]::TryParse($procIdText, [ref]$rootId)) {
+                $tree = @(_Get-Descendants -ParentId $rootId -Snap $snap) +
+                        @($snap | Where-Object { $_.ProcessId -eq $rootId })
+                # Leaves first so reparenting can't keep children alive.
+                $tree = $tree | Sort-Object -Property ProcessId -Descending -Unique
+                foreach ($p in $tree) {
+                    try {
+                        Stop-Process -Id $p.ProcessId -Force -ErrorAction Stop
+                        Ok "killed $($p.Name) pid $($p.ProcessId)"
+                    } catch { }
+                }
+            }
             Remove-Item -Force $pf -ErrorAction SilentlyContinue
         }
     }
-    # Belt + suspenders kill of any uvicorn / next leftovers from this repo.
-    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
-      Where-Object {
-          $_.CommandLine -like "*uvicorn*app.main:app*" -or
-          $_.CommandLine -like "*next dev*"
-      } | ForEach-Object {
-          try { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } catch { }
-      }
+
+    # Belt + suspenders: any leftover uvicorn / next dev / npm-run-dev under
+    # this repo path. Scoped to $Root so we never touch unrelated processes.
+    $repoLike = "*$Root*"
+    $snap | Where-Object {
+        $_.CommandLine -and ($_.CommandLine -like $repoLike) -and
+        (
+            $_.CommandLine -like "*uvicorn*"     -or
+            $_.CommandLine -like "*next*dev*"    -or
+            $_.CommandLine -like "*next*start*"  -or
+            $_.CommandLine -like "*npm*run*dev*" -or
+            $_.CommandLine -like "*node*next*"
+        )
+    } | ForEach-Object {
+        try {
+            Stop-Process -Id $_.ProcessId -Force -ErrorAction Stop
+            Ok "killed stray $($_.Name) pid $($_.ProcessId)"
+        } catch { }
+    }
 }
 # [Console]::TreatControlCAsInput throws "The handle is invalid" when the
 # script runs without an attached console (CI, background launches, IDE

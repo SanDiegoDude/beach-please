@@ -65,10 +65,19 @@ async def run_chat(
     client = _client()
 
     messages: list[ChatCompletionMessageParam] = [{"role": "system", "content": SYSTEM_PROMPT}]
-    cleaned = [
-        m for m in user_messages
-        if (m.get("content") or "").strip() and m.get("role") in ("user", "assistant")
-    ]
+    # Drop any assistant turns from prior sessions that are nothing but a
+    # leaked internal marker like "(used tools)". They would otherwise teach
+    # the model that that phrase is an acceptable reply -- exactly the bug
+    # we just fixed for new conversations.
+    cleaned = []
+    for m in user_messages:
+        role = m.get("role")
+        content = (m.get("content") or "").strip()
+        if not content or role not in ("user", "assistant"):
+            continue
+        if role == "assistant" and _looks_bad(content):
+            continue
+        cleaned.append(m)
     if not cleaned or cleaned[-1].get("role") != "user":
         yield {"type": "error", "message": "No user message in request."}
         return
@@ -131,11 +140,23 @@ async def run_chat(
             # then deliver results as a synthetic user message. This avoids
             # teaching the model to imitate "I'll call: foo()" in plain text
             # instead of emitting real tool_calls next round.
-            assistant_text = (msg.content or "").strip() or "(used tools)"
-            messages.append({
-                "role": "assistant",
-                "content": assistant_text,
-            })  # type: ignore[arg-type]
+            #
+            # IMPORTANT: do NOT inject a constant placeholder here when the
+            # model produced no narrative content. We previously used the
+            # literal "(used tools)" filler, which Qwen 3.6 (and similar
+            # local models) would happily memorize as "what the assistant
+            # says here" and then parrot back as its FINAL answer once the
+            # conversation got long, leaving the user staring at "(used
+            # tools)" instead of an actual response.
+            assistant_text = (msg.content or "").strip()
+            if assistant_text:
+                messages.append({
+                    "role": "assistant",
+                    "content": assistant_text,
+                })  # type: ignore[arg-type]
+            # else: skip the empty assistant turn entirely. The Qwen / Llama
+            # chat templates are fine with a user turn following a user turn;
+            # they're NOT fine with us teaching them a fixed filler string.
             result_lines = [
                 f"### {name} returned:\n```json\n{json.dumps(result, default=str)}\n```"
                 for _tc_id, name, result in results
@@ -187,29 +208,98 @@ async def run_chat(
     yield {"type": "done"}
 
 
+# If the model has parroted one of these phrases as its entire final answer,
+# something has gone wrong (it's almost certainly imitating an internal
+# placeholder it saw in history, or refusing to summarize). Retry once with a
+# stronger directive before giving up.
+_BAD_FINAL_PHRASES = ("(used tools)", "[invoked", "[tool calls in flight]")
+
+
+def _looks_bad(text: str) -> bool:
+    t = text.strip().lower()
+    if not t:
+        return True
+    for phrase in _BAD_FINAL_PHRASES:
+        if phrase.lower() in t and len(t) <= len(phrase) + 20:
+            return True
+    return False
+
+
 async def _stream_final(
     client: AsyncOpenAI,
     messages: list[ChatCompletionMessageParam],
     model: str,
 ) -> AsyncIterator[dict[str, Any]]:
-    """Re-issue the final assistant turn with streaming so tokens flow to the UI."""
-    try:
-        stream = await client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=0.7,
-            stream=True,
-        )
-    except Exception as exc:
-        yield {"type": "error", "message": f"Streaming failed: {exc}"}
+    """Re-issue the final assistant turn with streaming so tokens flow to the UI.
+
+    Buffers the streamed text instead of emitting it directly so we can
+    detect a degenerate response (empty, or the model parroting an internal
+    marker) and retry once with a stronger directive before giving up.
+    """
+    async def _stream_once(extra_nudge: str | None) -> tuple[list[str], dict[str, Any] | None]:
+        """Run one streaming pass, return (collected_chunks, error_event_or_none)."""
+        msgs = list(messages)
+        if extra_nudge:
+            msgs.append({"role": "user", "content": extra_nudge})  # type: ignore[arg-type]
+        try:
+            stream = await client.chat.completions.create(
+                model=model,
+                messages=msgs,
+                temperature=0.7,
+                stream=True,
+            )
+        except Exception as exc:
+            return [], {"type": "error", "message": f"Streaming failed: {exc}"}
+        collected: list[str] = []
+        async for chunk in stream:
+            if not chunk.choices:
+                continue
+            delta = chunk.choices[0].delta
+            if delta and delta.content:
+                collected.append(delta.content)
+        return collected, None
+
+    chunks, err = await _stream_once(None)
+    text = "".join(chunks)
+
+    if err is None and not _looks_bad(text):
+        for c in chunks:
+            yield {"type": "delta", "content": c}
         return
 
-    async for chunk in stream:
-        if not chunk.choices:
-            continue
-        delta = chunk.choices[0].delta
-        if delta and delta.content:
-            yield {"type": "delta", "content": delta.content}
+    # First pass was empty or degenerate. One retry with a directive that
+    # explicitly forbids the placeholder pattern.
+    nudge = (
+        "[SYSTEM: Your previous turn was empty or only contained an internal "
+        "marker. Write the FINAL answer to the user's original question now, "
+        "in your own voice, using the tool results above. Do NOT output "
+        "'(used tools)', '[invoked ...]', or any other process marker — "
+        "those are internal-only. Give the user the actual recommendation."
+    )
+    chunks2, err2 = await _stream_once(nudge)
+    text2 = "".join(chunks2)
+
+    if err2 is None and not _looks_bad(text2):
+        for c in chunks2:
+            yield {"type": "delta", "content": c}
+        return
+
+    # Both attempts degenerate. Surface a real error rather than silently
+    # showing an internal marker.
+    if err:
+        yield err
+        return
+    if err2:
+        yield err2
+        return
+    yield {
+        "type": "error",
+        "message": (
+            "The model returned an empty answer after running tools. This "
+            "usually means it hit its context limit on a complex question — "
+            "try a narrower one (e.g. a single beach instead of four)."
+        ),
+    }
 
 
 async def generate_blurb(beach_data: dict[str, Any]) -> str:
