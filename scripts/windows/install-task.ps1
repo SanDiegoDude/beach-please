@@ -43,7 +43,20 @@ Push-Location $FrontendDir
 try { npm run build } finally { Pop-Location }
 Ok "frontend built"
 
-$npmCmd = (Get-Command npm).Source
+# Find npm beside a real node (not Cursor / VS Code's bundled stub which
+# ships node without npm). Same logic as install.ps1 / dev.ps1.
+function Resolve-Npm {
+    foreach ($c in @(Get-Command node -All -ErrorAction SilentlyContinue)) {
+        $dir = Split-Path $c.Source -Parent
+        $npm = Join-Path $dir "npm.cmd"
+        if (Test-Path $npm) { return $npm }
+    }
+    $direct = Get-Command npm.cmd -ErrorAction SilentlyContinue
+    if ($direct) { return $direct.Source }
+    return $null
+}
+$npmCmd = Resolve-Npm
+if (-not $npmCmd) { Die "npm not found beside any node on PATH. Re-run .\scripts\windows\install.ps1 to diagnose." }
 
 # Common settings for both tasks: at-logon trigger, restart on failure,
 # hidden window, run in user context.
@@ -55,14 +68,16 @@ $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable -Hidden:$true -ExecutionTimeLimit ([TimeSpan]::Zero)
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
 
+# Start-Process can't redirect stdout AND stderr to the same file on Windows,
+# so we keep them as separate .out.log / .err.log files for each service.
 # --- Backend task ---
-$backendCmd = "Start-Process -FilePath '$VenvUvicorn' -ArgumentList 'app.main:app','--host','0.0.0.0','--port','8765' -WorkingDirectory '$BackendDir' -RedirectStandardOutput '$LogDir\backend.log' -RedirectStandardError '$LogDir\backend.log' -WindowStyle Hidden"
+$backendCmd = "Start-Process -FilePath '$VenvUvicorn' -ArgumentList 'app.main:app','--host','0.0.0.0','--port','8765' -WorkingDirectory '$BackendDir' -RedirectStandardOutput '$LogDir\backend.out.log' -RedirectStandardError '$LogDir\backend.err.log' -WindowStyle Hidden"
 $backendAction = New-ScheduledTaskAction `
     -Execute "powershell.exe" `
     -Argument "-NoProfile -WindowStyle Hidden -Command `"$backendCmd`""
 
 # --- Frontend task ---
-$frontendCmd = "Start-Process -FilePath '$npmCmd' -ArgumentList 'run','start' -WorkingDirectory '$FrontendDir' -RedirectStandardOutput '$LogDir\frontend.log' -RedirectStandardError '$LogDir\frontend.log' -WindowStyle Hidden"
+$frontendCmd = "Start-Process -FilePath '$npmCmd' -ArgumentList 'run','start' -WorkingDirectory '$FrontendDir' -RedirectStandardOutput '$LogDir\frontend.out.log' -RedirectStandardError '$LogDir\frontend.err.log' -WindowStyle Hidden"
 $frontendAction = New-ScheduledTaskAction `
     -Execute "powershell.exe" `
     -Argument "-NoProfile -WindowStyle Hidden -Command `"$frontendCmd`""
@@ -104,7 +119,7 @@ Write-Host @"
 It will:
   - Auto-start when you log in.
   - Restart automatically on failure.
-  - Log to $LogDir\backend.log and frontend.log.
+  - Log to $LogDir\{backend,frontend}.{out,err}.log.
 
 Open from any device on your home Wi-Fi:
   Local:  http://localhost:5757
