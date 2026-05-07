@@ -1,0 +1,16 @@
+[Unit]
+Description=Beach, Please backend (FastAPI agent)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=__REPO__/backend
+ExecStart=__REPO__/backend/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8765
+Restart=on-failure
+RestartSec=3
+StandardOutput=append:__REPO__/logs/backend.log
+StandardError=append:__REPO__/logs/backend.log
+
+[Install]
+WantedBy=default.target

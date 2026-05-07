@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --color-sand-50: #fdf8ef;
+  --color-sand-100: #f8ecd2;
+  --color-sand-200: #f0d7a0;
+  --color-sand-300: #e8c071;
+  --color-sand-400: #dca648;
+  --color-sand-500: #c08b30;
+
+  --color-ocean-50: #eef9fb;
+  --color-ocean-100: #d3eff5;
+  --color-ocean-200: #a4dde9;
+  --color-ocean-300: #6cc5d9;
+  --color-ocean-400: #3aaac6;
+  --color-ocean-500: #1c8baa;
+  --color-ocean-600: #126e8a;
+  --color-ocean-700: #0d556d;
+  --color-ocean-800: #0a4055;
+  --color-ocean-900: #08323f;
+
+  --color-coral-300: #ff9985;
+  --color-coral-400: #ff7458;
+  --color-coral-500: #ee4e30;
+  --color-coral-600: #c43c20;
+}
+
+html, body {
+  background: linear-gradient(180deg, #fdf8ef 0%, #f0d7a0 30%, #6cc5d9 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  color: #08323f;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+::selection {
+  background: var(--color-coral-300);
+  color: var(--color-ocean-900);
+}
+
+/* Tool-call HUD: each event flashes in and gently fades to a hold state.
+ * The animation runs on mount; remounting via React `key` restarts it for
+ * the next event. */
+@keyframes ticker-flash {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: brightness(1.1);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: brightness(1.1);
+  }
+  100% {
+    opacity: 0.55;
+    transform: translateY(0);
+    filter: brightness(1);
+  }
+}
+
+.ticker-flash {
+  animation: ticker-flash 600ms ease-out forwards;
+}

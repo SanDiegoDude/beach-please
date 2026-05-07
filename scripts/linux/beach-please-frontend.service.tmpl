@@ -1,0 +1,17 @@
+[Unit]
+Description=Beach, Please frontend (Next.js)
+After=network-online.target beach-please-backend.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=__REPO__/frontend
+Environment=NODE_ENV=production
+ExecStart=__NPM__ run start
+Restart=on-failure
+RestartSec=3
+StandardOutput=append:__REPO__/logs/frontend.log
+StandardError=append:__REPO__/logs/frontend.log
+
+[Install]
+WantedBy=default.target

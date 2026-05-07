@@ -1,0 +1,178 @@
+[
+  {
+    "slug": "huntington-beach-ca",
+    "name": "Huntington Beach",
+    "state": "CA",
+    "region": "Southern California",
+    "lat": 33.6595,
+    "lon": -118.0006,
+    "tide_station": "9410660",
+    "description": "Surf City USA. Long sandy stretch, consistent shoulder-high surf, big crowds.",
+    "tags": ["surfing", "family", "pier", "lifeguards"]
+  },
+  {
+    "slug": "santa-monica-ca",
+    "name": "Santa Monica State Beach",
+    "state": "CA",
+    "region": "Southern California",
+    "lat": 34.0090,
+    "lon": -118.4973,
+    "tide_station": "9410840",
+    "description": "Iconic LA beach with the Ferris wheel pier. Gentle waves, easy parking nightmare.",
+    "tags": ["family", "tourist", "pier", "boardwalk"]
+  },
+  {
+    "slug": "la-jolla-cove-ca",
+    "name": "La Jolla Cove",
+    "state": "CA",
+    "region": "Southern California",
+    "lat": 32.8508,
+    "lon": -117.2713,
+    "tide_station": "9410230",
+    "description": "Postcard-perfect cove with sea lions, snorkeling, and tide pools.",
+    "tags": ["snorkeling", "wildlife", "tide-pools", "calm-water"]
+  },
+  {
+    "slug": "ocean-beach-sf-ca",
+    "name": "Ocean Beach (San Francisco)",
+    "state": "CA",
+    "region": "Northern California",
+    "lat": 37.7594,
+    "lon": -122.5107,
+    "tide_station": "9414290",
+    "description": "Cold, foggy, and dangerous. Locals walk it. Tourists try to swim it. Don't.",
+    "tags": ["dangerous-shorebreak", "surfing-experts", "cold-water", "scenic"]
+  },
+  {
+    "slug": "south-beach-miami-fl",
+    "name": "South Beach (Miami)",
+    "state": "FL",
+    "region": "South Florida",
+    "lat": 25.7825,
+    "lon": -80.1340,
+    "tide_station": "8723214",
+    "description": "Warm water, white sand, art deco backdrop. Loud, packed, glorious.",
+    "tags": ["family", "tourist", "warm-water", "nightlife"]
+  },
+  {
+    "slug": "clearwater-beach-fl",
+    "name": "Clearwater Beach",
+    "state": "FL",
+    "region": "Gulf Coast Florida",
+    "lat": 27.9772,
+    "lon": -82.8276,
+    "tide_station": "8726520",
+    "description": "Sugar-soft sand, Gulf-side calm water, killer sunsets.",
+    "tags": ["family", "calm-water", "shells", "sunset"]
+  },
+  {
+    "slug": "daytona-beach-fl",
+    "name": "Daytona Beach",
+    "state": "FL",
+    "region": "Atlantic Florida",
+    "lat": 29.2108,
+    "lon": -81.0228,
+    "tide_station": "8720587",
+    "description": "Yes, you can drive on it. Yes, that's part of the appeal.",
+    "tags": ["drive-on-beach", "family", "boardwalk"]
+  },
+  {
+    "slug": "waikiki-hi",
+    "name": "Waikiki Beach",
+    "state": "HI",
+    "region": "Oahu, Hawaii",
+    "lat": 21.2767,
+    "lon": -157.8275,
+    "tide_station": "1612340",
+    "description": "Beginner surf paradise with Diamond Head views and zero parking.",
+    "tags": ["beginner-surfing", "tourist", "calm-water", "warm-water"]
+  },
+  {
+    "slug": "pipeline-hi",
+    "name": "Banzai Pipeline (Ehukai Beach)",
+    "state": "HI",
+    "region": "North Shore Oahu, Hawaii",
+    "lat": 21.6650,
+    "lon": -158.0533,
+    "tide_station": "1612340",
+    "description": "World-famous heaving barrels over a shallow reef. Watch from the sand.",
+    "tags": ["surfing-experts", "dangerous-shorebreak", "spectator", "winter-swell"]
+  },
+  {
+    "slug": "kill-devil-hills-nc",
+    "name": "Kill Devil Hills (Outer Banks)",
+    "state": "NC",
+    "region": "Outer Banks, North Carolina",
+    "lat": 36.0301,
+    "lon": -75.6694,
+    "tide_station": "8651370",
+    "description": "Long, wild Atlantic stretch on the Outer Banks. Wind, waves, history.",
+    "tags": ["surfing", "windy", "shells", "rip-currents"]
+  },
+  {
+    "slug": "myrtle-beach-sc",
+    "name": "Myrtle Beach",
+    "state": "SC",
+    "region": "Grand Strand, South Carolina",
+    "lat": 33.6891,
+    "lon": -78.8867,
+    "tide_station": "8661070",
+    "description": "Mini-golf, boardwalk, 60 miles of beach. A proper American beach town.",
+    "tags": ["family", "boardwalk", "warm-water", "tourist"]
+  },
+  {
+    "slug": "jones-beach-ny",
+    "name": "Jones Beach",
+    "state": "NY",
+    "region": "Long Island, New York",
+    "lat": 40.5990,
+    "lon": -73.5067,
+    "tide_station": "8516945",
+    "description": "Long Island's grand Atlantic beach. Robert Moses' love letter to the masses.",
+    "tags": ["family", "lifeguards", "boardwalk", "rip-currents"]
+  },
+  {
+    "slug": "asbury-park-nj",
+    "name": "Asbury Park Beach",
+    "state": "NJ",
+    "region": "Jersey Shore",
+    "lat": 40.2204,
+    "lon": -74.0121,
+    "tide_station": "8531680",
+    "description": "The Boss's beach. Boardwalk, music, and unironic Jersey Shore energy.",
+    "tags": ["boardwalk", "family", "music", "rip-currents"]
+  },
+  {
+    "slug": "cannon-beach-or",
+    "name": "Cannon Beach",
+    "state": "OR",
+    "region": "Oregon Coast",
+    "lat": 45.8918,
+    "lon": -123.9615,
+    "tide_station": "9437540",
+    "description": "Haystack Rock, dramatic fog, water cold enough to make you reconsider life.",
+    "tags": ["scenic", "tide-pools", "cold-water", "photography"]
+  },
+  {
+    "slug": "long-beach-wa",
+    "name": "Long Beach",
+    "state": "WA",
+    "region": "Washington Coast",
+    "lat": 46.3504,
+    "lon": -124.0537,
+    "tide_station": "9440910",
+    "description": "28 miles of drivable Pacific beach. Razor clams, kite festivals, gray skies.",
+    "tags": ["drive-on-beach", "razor-clams", "cold-water", "windy"]
+  },
+  {
+    "slug": "south-padre-island-tx",
+    "name": "South Padre Island",
+    "state": "TX",
+    "region": "South Texas Gulf Coast",
+    "lat": 26.1118,
+    "lon": -97.1681,
+    "tide_station": "8779749",
+    "description": "Gulf warmth, spring-break legend, surprisingly great shelling north of town.",
+    "tags": ["warm-water", "shells", "family", "spring-break"]
+  }
+]

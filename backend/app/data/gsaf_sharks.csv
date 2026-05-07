@@ -1,0 +1,43 @@
+year,lat,lon,location,activity,fatal,species
+2023,29.2108,-81.0228,"Volusia County, FL",Surfing,N,Blacktip
+2023,29.2401,-81.0099,"Daytona Beach, FL",Swimming,N,Unknown
+2022,29.2380,-81.0190,"Daytona Beach, FL",Surfing,N,Blacktip
+2022,29.0760,-80.9090,"New Smyrna Beach, FL",Surfing,N,Blacktip
+2021,29.0390,-80.9000,"New Smyrna Beach, FL",Surfing,N,Blacktip
+2021,29.0540,-80.9120,"New Smyrna Beach, FL",Boogie boarding,N,Blacktip
+2020,29.0500,-80.9100,"New Smyrna Beach, FL",Surfing,N,Blacktip
+2019,29.0400,-80.9100,"New Smyrna Beach, FL",Surfing,N,Blacktip
+2018,29.0700,-80.9200,"New Smyrna Beach, FL",Surfing,N,Blacktip
+2017,29.0500,-80.9100,"New Smyrna Beach, FL",Surfing,N,Blacktip
+2016,29.0500,-80.9000,"New Smyrna Beach, FL",Surfing,N,Blacktip
+2015,29.0500,-80.9100,"New Smyrna Beach, FL",Surfing,N,Blacktip
+2023,33.6595,-118.0006,"Huntington Beach, CA",Surfing,N,White
+2022,33.6700,-118.0100,"Huntington Beach, CA",Paddleboarding,N,White
+2020,33.6800,-118.0200,"Sunset Beach, CA",Surfing,N,White
+2021,32.8508,-117.2713,"La Jolla, CA",Diving,N,Mako
+2008,32.8600,-117.2700,"Solana Beach, CA",Swimming,Y,White
+2018,34.0090,-118.4973,"Santa Monica, CA",Swimming,N,Unknown
+2014,33.5000,-117.7300,"Manhattan Beach, CA",Swimming,N,White
+2017,37.7594,-122.5107,"Ocean Beach, SF, CA",Surfing,N,White
+2012,37.5000,-122.5200,"Pacifica, CA",Surfing,N,White
+2015,37.7000,-122.5100,"San Francisco, CA",Surfing,N,White
+2023,21.6650,-158.0533,"North Shore Oahu, HI",Surfing,N,Tiger
+2022,21.2767,-157.8275,"Waikiki, HI",Snorkeling,N,Unknown
+2019,21.6600,-158.0500,"North Shore Oahu, HI",Surfing,Y,Tiger
+2020,21.6500,-158.0600,"North Shore Oahu, HI",Bodyboarding,N,Tiger
+2017,21.5000,-158.2000,"West Oahu, HI",Surfing,N,Tiger
+2023,36.0301,-75.6694,"Outer Banks, NC",Swimming,N,Bull
+2022,36.1000,-75.7000,"Outer Banks, NC",Surfing,N,Sandbar
+2015,34.6000,-77.3000,"Oak Island, NC",Swimming,N,Bull
+2023,33.6891,-78.8867,"Myrtle Beach, SC",Swimming,N,Blacktip
+2022,33.7000,-78.9000,"Myrtle Beach, SC",Wading,N,Blacktip
+2021,33.6900,-78.8900,"Myrtle Beach, SC",Swimming,N,Blacktip
+2020,33.6900,-78.8800,"Myrtle Beach, SC",Wading,N,Unknown
+2021,40.5990,-73.5067,"Jones Beach, NY",Swimming,N,Sandbar
+2022,40.6500,-73.4500,"Fire Island, NY",Surfing,N,Sandbar
+2023,40.6600,-73.2500,"Smith Point, NY",Wading,N,Sandbar
+2020,40.2204,-74.0121,"Asbury Park, NJ",Swimming,N,Unknown
+2018,25.7825,-80.1340,"Miami Beach, FL",Snorkeling,N,Nurse
+2015,27.9772,-82.8276,"Clearwater Beach, FL",Wading,N,Bonnethead
+2020,26.1118,-97.1681,"South Padre Island, TX",Wading,N,Bull
+2019,26.1100,-97.1700,"South Padre Island, TX",Surfing,N,Blacktip
